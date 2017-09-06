@@ -668,7 +668,7 @@ int OpenServo::write2B(int servo_id, unsigned char data_addr, int value)
   data[0] = (unsigned char)(value >> 8);
   //data[1] = (unsigned char)(value%0xFF);
 
-  cout << value << " " << (unsigned int) data[0] << " " << (unsigned int) data[1] << endl; ;
+  //cout << value << " " << (unsigned int) data[0] << " " << (unsigned int) data[1] << endl; ;
 
   return sendData(servo->address, data_addr, data, 2);
 }
