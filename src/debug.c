@@ -14,7 +14,7 @@ const char* _source_root = OPENSERVO_SOURCE_COMPILE_ROOT;
 #else
 const char* _source_root = "";
 #endif
-const int _source_root_len = ((sizeof _source_root));
+const int _source_root_len = ((sizeof _source_root)-1);
 
 static int ___debug = 0;
 

@@ -29,9 +29,17 @@ public:
   bool registersRestore();
   bool registersDefault();
 
+  bool set(const string& name, int value);
+  int get(const string& name) const;
+
+  vector<string> list() const;
+  bool isReadonly(const string& name) const;
+  bool isProtected(const string& name) const;
+  bool exists(const string& name) const;
+
   int getType();
   int getSubType();
-  int getVersion();
+  pair<int, int> getVersion();
   int getFlags();
   int getTimer();
   int getPosition();
@@ -44,41 +52,16 @@ public:
   int getCurveInVelocity();
   int getCurveOutVelocity();
 
-  void setSeekPossition(int value);
+  void setSeekPosition(int value);
   void setSeekVelocity(int value);
-  void setCurveInVelocity(int value);
-  void setCurveOutVelocity(int value);
 
   int getAddress();
-  int getPidDeadband();
-  int getPidGainProportional();
-  int getPidGainDerivative();
-  int getPidGainIntegral();
-  int getPwmFreqDivider();
   int getMinSeek();
   int getMaxSeek();
-  int getReverseSeek();
-  int getReverseSeekTo();
-  int getServoID();
-  int getCurrentCutOff();
-  int getCurrentSoftCuttOff();
 
   // Protected write methods
 
   void unlock();
-
-  void setAddress(int address); // change servo message bus ID
-  void setPidDeadband(int deadband);
-  void setPidGain(int proportional, int derivative, int integral);
-  void setPwmFreqDivider(int value);
-  void setMinSeek(int value);
-  void setMaxSeek(int value);
-  void setReverseSeek(int value);
-  void setReverseSeekTo(int value);
-  void setServoID(int value);
-  void setCurrentCutOff(int value);
-  void setCurrentSoftCuttOff(int value);
-
 
   bool update(bool full = false);
 
@@ -88,11 +71,13 @@ protected:
 
 private:
 
-  int read2B(int address);
-  int read1B(int address);
+  string normalize(const string& name) const;
 
-  void write2B(int address, int value);
-  void write1B(int address, int value);
+  int read2B(const int address) const;
+  int read1B(const int address) const;
+
+  void write2B(const int address, int value);
+  void write1B(const int address, int value);
 
   bool command(unsigned char cmd);
 
@@ -123,6 +108,8 @@ public:
   int scan(bool force = false);
 
   ServoHandler get(int i);
+  ServoHandler find(int address);
+  bool exists(int address); 
   int size();
 
 protected:
@@ -134,9 +121,7 @@ private:
 
   void* handle;
   vector<ServoHandler> servos;
-
-  bool exists(int address);  
-  ServoHandler find(int address);
+ 
   int cleanupServos();
   int addServos();
 

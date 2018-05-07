@@ -46,8 +46,8 @@ SET(INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR})
 
 
 IF (BUILD_TOOLS)
-ADD_EXECUTABLE(openservo_scan src/tools/scan.cpp)
-TARGET_LINK_LIBRARIES(openservo_scan openservo ${LIBRARIES})
+ADD_EXECUTABLE(openservo_control src/tools/control.cpp)
+TARGET_LINK_LIBRARIES(openservo_control openservo ${LIBRARIES})
 ENDIF()
 
 configure_package_config_file(OpenServoConfig.cmake.in

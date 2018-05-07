@@ -3,9 +3,67 @@
 #include "defines.h"
 #include "debug.h"
 
+#include <map>
+#include <algorithm>
+#include <string> 
+
 #include <unistd.h>
 
 namespace openservo {
+
+#define REGISTER_READONLY 1
+#define REGISTER_PROTECTED 2
+
+class Register {
+public:
+  Register(int address, int length, int flags = 0): address(address),
+   length(length), flags(flags) {
+
+  }
+
+  ~Register() {
+
+  }
+
+  int address;
+  int length;
+  int flags;
+
+};
+
+map<string, Register> _registers = {
+  {"type", Register(DEVICE_TYPE, 1, REGISTER_READONLY)},
+  {"subtype", Register(DEVICE_SUBTYPE, 1, REGISTER_READONLY)},
+  {"version.major", Register(VERSION_MAJOR, 1, REGISTER_READONLY)},
+  {"version.minor", Register(VERSION_MINOR, 1, REGISTER_READONLY)},
+  {"flags", Register(FLAGS_HI, 2, REGISTER_READONLY)},
+  {"timer", Register(TIMER_HI, 2, REGISTER_READONLY)},
+  {"position", Register(POSITION_HI, 2, REGISTER_READONLY)},
+  {"velocity", Register(VELOCITY_HI, 2, REGISTER_READONLY)},
+  {"power", Register(POWER_HI, 2, REGISTER_READONLY)},
+  {"pwm.cw", Register(PWM_CW, 1, REGISTER_READONLY)},
+  {"pwm.ccw", Register(PWM_CCW, 1, REGISTER_READONLY)},
+
+  {"seek", Register(SEEK_HI, 2)},
+  {"seek.velocity", Register(SEEK_VELOCITY_HI, 2)},
+  {"voltage", Register(VOLTAGE_HI, 2)},
+
+
+  {"address", Register(TWI_ADDRESS, 1, REGISTER_PROTECTED)},
+  {"pid.deadband", Register(PID_DEADBAND, 1, REGISTER_PROTECTED)},
+  {"pid.proportional", Register(PID_PGAIN_HI, 2, REGISTER_PROTECTED)},
+  {"pid.derivative", Register(PID_DGAIN_HI, 2, REGISTER_PROTECTED)},
+  {"pid.integral", Register(PID_IGAIN_HI, 2, REGISTER_PROTECTED)},
+  {"pwm.divider", Register(PWM_FREQ_DIVIDER_HI, 2, REGISTER_PROTECTED)},
+  {"seek.min", Register(MIN_SEEK_HI, 2, REGISTER_PROTECTED)},
+  {"seek.max", Register(MAX_SEEK_HI, 2, REGISTER_PROTECTED)},
+  {"seek.reverse", Register(REVERSE_SEEK, 1, REGISTER_PROTECTED)},
+
+  {"servo", Register(SERVO_ID_HI, 2, REGISTER_PROTECTED)},
+  {"cutoff", Register(CURRENT_CUT_OFF_HI, 2, REGISTER_PROTECTED)},
+  {"cutoff.soft", Register(CURRENT_SOFT_CUT_OFF_HI, 2, REGISTER_PROTECTED)},  
+
+  };
 
 Servo::Servo(ServoBus* bus, int address): bus(bus), locked(true) {
 
@@ -68,270 +126,206 @@ bool Servo::registersDefault() {
 
 int Servo::getType() {
   
-  return read1B(DEVICE_TYPE);
+  return get("type");
 
 }
 
 int Servo::getSubType() {
 
-  return read1B(DEVICE_SUBTYPE);
+  return get("subtype");
   
 }
 
-int Servo::getVersion() {
+pair<int, int> Servo::getVersion() {
 
-  return read2B(VERSION_MAJOR);
+  return pair<int, int>(get("version.major"), get("version.minor"));
   
 }
 
 int Servo::getFlags() {
 
-  return read2B(FLAGS_HI);
+  return get("flags");
   
 }
 
 int Servo::getTimer() {
 
-  return read2B(TIMER_HI);
+  return get("timer");
   
 }
 
 int Servo::getPosition() {
 
-  return read2B(POSITION_HI);
+  return get("position");
   
 }
 
 int Servo::getVelocity() {
 
-  return read2B(VELOCITY_HI);
+  return get("velocity");
   
 }
 
 int Servo::getPower() {
 
-  return read2B(POWER_HI);
+  return get("power");
   
 }
 
 int Servo::getPWM() {
 
-  return read1B(PWM_CW);
+  return get("pwm");
   
 }
 
 int Servo::getSeekPosition() {
 
-  return read2B(SEEK_HI);
+  return get("seek");
   
 }
 
 int Servo::getSeekVelocity() {
   
-  return read2B(SEEK_VELOCITY_HI);
-
-}
-
-int Servo::getCurveInVelocity() {
-
-  return read2B(CURRENT_CUT_OFF_HI);
-  
-}
-
-int Servo::getCurveOutVelocity(){
-  
-  return read2B(CURRENT_SOFT_CUT_OFF_HI);
+  return get("seek.velocity");
 
 }
 
 int Servo::getAddress() {
 
-  return read1B(TWI_ADDRESS);
-
-}
-
-int Servo::getPidDeadband()  {
-
-  return read1B(PID_DEADBAND);
-
-}
-
-int Servo::getPidGainProportional()  {
-
-  return read2B(PID_PGAIN_HI);
-
-}
-
-int Servo::getPidGainDerivative()  {
-
-  return read2B(PID_DGAIN_HI);
-
-}
-
-int Servo::getPidGainIntegral()  {
-
-  return read2B(PID_IGAIN_HI);
-
-}
-
-int Servo::getPwmFreqDivider()  {
-
-  return read2B(CURRENT_SOFT_CUT_OFF_HI);
+  return get("address");
 
 }
 
 int Servo::getMinSeek()  {
 
-  return read2B(MIN_SEEK_HI);
+  return get("seek.min");
 
 }
 
 int Servo::getMaxSeek()  {
 
-  return read2B(MAX_SEEK_HI);
+  return get("seek.max");
 
 }
 
-int Servo::getReverseSeek()  {
+void Servo::setSeekPosition(int value) {
 
-  return read1B(REVERSE_SEEK);
-
-}
-
-int Servo::getReverseSeekTo()  {
-
-  return read2B(CURRENT_SOFT_CUT_OFF_HI);
-
-}
-
-int Servo::getServoID()  {
-
-  return read2B(SERVO_ID_HI);
-
-}
-
-int Servo::getCurrentCutOff()  {
-
-  return read2B(CURRENT_SOFT_CUT_OFF_HI);
-
-}
-
-int Servo::getCurrentSoftCuttOff()  {
-
-  return read2B(CURRENT_SOFT_CUT_OFF_HI);
-
-}
-
-void Servo::setSeekPossition(int value) {
-
-  write2B(SEEK_HI, value);
+  set("seek", value);
 
 }
 
 void Servo::setSeekVelocity(int value) {
 
-  write2B(SEEK_VELOCITY_HI, value);
+  set("seek.velocity", value);
 
 }
 
+char register_name(char in) {
+  if(in <= 'Z' && in >= 'A')
+    return in - ('Z' - 'z');
+  if (in == '_') return '.';
+  return in;
+}
 
-void Servo::setCurveInVelocity(int value) {
+string Servo::normalize(const string& name) const {
 
-  write2B(CURVE_IN_VELOCITY_HI, value);
+  string nname(name);
+
+  transform(nname.begin(), nname.end(), nname.begin(), register_name);
+
+  return nname;
 
 }
 
-void Servo::setCurveOutVelocity(int value) {
+int Servo::get(const string& name) const {
 
-  write2B(CURVE_OUT_VELOCITY_HI, value);
+  string nname = normalize(name);
 
-}
+  std::map<string, Register>::iterator reg;
 
-void Servo::setAddress(int value) {
+  reg = _registers.find(nname);
 
-  if (locked) return;
+  if (reg == _registers.end()) return 0;
 
-  write1B(TWI_ADDRESS, value);
-
-}
-
-void Servo::setPidDeadband(int value) {
-
-  if (locked) return;
-
-  write1B(PID_DEADBAND, value);
+  if (reg->second.length == 1) {
+    return read1B(reg->second.address);
+  } else {
+    return read2B(reg->second.address);
+  }
 
 }
 
-void Servo::setPidGain(int proportional, int derivative, int integral) {
+bool Servo::set(const string& name, int value) {
 
-  if (locked) return;
+  string nname = normalize(name);
+
+  std::map<string, Register>::iterator reg;
+
+  reg = _registers.find(nname);
+
+  if (reg == _registers.end()) return false;
+
+  if (reg->second.flags == REGISTER_READONLY) return false;
+  if (reg->second.flags == REGISTER_PROTECTED && locked) return false;
+
+  if (reg->second.length == 1) {
+    write1B(reg->second.address, value);
+  } else {
+    write2B(reg->second.address, value);
+  }
+
+  return true;
+}
+
+vector<string> Servo::list() const {
+  vector<string> names;
+  for(std::map<string, Register>::const_iterator it = _registers.begin();
+    it != _registers.end(); ++it) {
+    names.push_back(it->first);
+  }
+  return names;
+}
+
+bool Servo::exists(const string& name) const {
+
+  string nname = normalize(name);
+  
+  std::map<string, Register>::iterator reg;
+
+  reg = _registers.find(nname);
+
+  return !(reg == _registers.end());
 
 }
 
-void Servo::setPwmFreqDivider(int value) {
+bool Servo::isReadonly(const string& name) const {
 
-  if (locked) return;
+  string nname = normalize(name);
+  
+  std::map<string, Register>::iterator reg;
 
-  write2B(PWM_FREQ_DIVIDER_HI, value);
+  reg = _registers.find(nname);
+
+  if (reg == _registers.end()) return false;
+
+  return reg->second.flags == REGISTER_READONLY;
+
+}
+bool Servo::isProtected(const string& name) const {
+
+  string nname = normalize(name);
+  
+  std::map<string, Register>::iterator reg;
+
+  reg = _registers.find(nname);
+
+  if (reg == _registers.end()) return false;
+
+  return reg->second.flags == REGISTER_PROTECTED;
 
 }
 
-void Servo::setMinSeek(int value) {
-
-  if (locked) return;
-
-  write2B(MIN_SEEK_HI, value);
-
-}
-
-void Servo::setMaxSeek(int value) {
-
-  if (locked) return;
-
-  write2B(MAX_SEEK_HI, value);
-
-}
-
-void Servo::setReverseSeek(int value) {
-
-  if (locked) return;
-
-}
-
-void Servo::setReverseSeekTo(int value) {
-
-  if (locked) return;
-
-  write1B(REVERSE_SEEK, value);
-
-}
-
-void Servo::setServoID(int value) {
-
-  if (locked) return;
-
-  write2B(SERVO_ID_HI, value);
-
-}
-
-void Servo::setCurrentCutOff(int value) {
-
-  if (locked) return;
-
-  write2B(CURRENT_CUT_OFF_HI, value);
-
-}
-
-void Servo::setCurrentSoftCuttOff(int value) {
-
-  if (locked) return;
-
-  write2B(CURRENT_SOFT_CUT_OFF_HI, value);
-
-}
-
-int Servo::read2B(int address) {
+int Servo::read2B(const int address) const {
   int value = 0;
 
   value = ((int)data[address]) << 8;
@@ -340,7 +334,7 @@ int Servo::read2B(int address) {
   return value;
 }
 
-int Servo::read1B(int address) {
+int Servo::read1B(const int address) const {
 
   int value = 0;
 
@@ -350,20 +344,20 @@ int Servo::read1B(int address) {
 
 }
 
-void Servo::write2B(int address, int value) {
+void Servo::write2B(const int address, int value) {
 
-  data[value+1] = (unsigned char)value;
-  data[value] = (unsigned char)(value >> 8);
+  data[address+1] = (unsigned char)value;
+  data[address] = (unsigned char)(value >> 8);
 
-  local[value+1] = true;
-  local[value] = true;
+  local[address+1] = true;
+  local[address] = true;
 
 }
 
-void Servo::write1B(int address, int value) {
+void Servo::write1B(const int address, int value) {
 
-  data[value] = (unsigned char)value;
-  local[value] = true;
+  data[address] = (unsigned char)value;
+  local[address] = true;
 
 }
 
@@ -428,7 +422,8 @@ bool Servo::update(bool full) {
 
 ServoBus::ServoBus() {
 
-  __debug_enable();
+  if (__is_debug_enabled())
+    __debug_enable();
 
   handle = NULL;
 
