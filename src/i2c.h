@@ -1,17 +1,30 @@
 
-#ifndef LIB_I2C_H
-#define LIB_I2C_H
+#ifndef __I2C_H
+#define __I2C_H
+
+#define I2C_DIRECT 0
+#define I2C_MPSSE 1
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int i2cOpen(char *filename, int *file);
-int i2cClose(int file);
-int i2cSetSlave(int file, int i2c_dev_addr);
-int i2cRead(int file, unsigned char* buffer, int length);
-int i2cWrite(int file, unsigned char* buffer, int length);
-int i2cScan(int file, unsigned char* addr);
+typedef struct i2c_object {
+	void* data;
+	int selected;
+    int flags;
+    int last_error;
+} i2c_object;
+
+typedef i2c_object* i2c_handle;
+
+i2c_handle i2c_open(const char *filename, int type);
+int i2c_close(i2c_handle* handle);
+int i2c_select(i2c_handle handle, int address);
+int i2c_read(i2c_handle handle, unsigned char* buffer, int length);
+int i2c_write(i2c_handle handle, unsigned char* buffer, int length);
+int i2c_scan(i2c_handle handle, unsigned char* addr);
+int i2c_get_error(i2c_handle handle);
 
 #ifdef __cplusplus
 }

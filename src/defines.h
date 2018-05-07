@@ -18,7 +18,7 @@
 */
 
 //** register addresses
-// TWI read/only status registers.  Writing
+// TWI read-only status registers.  Writing
 // values to these registers has no effect.
 #define DEVICE_TYPE             0x00
 #define DEVICE_SUBTYPE          0x01
@@ -75,7 +75,7 @@
 
 //** rw protected addresses
 // TWI safe read/write registers.  These registers
-// may only be written to when write enabled.
+// may only be written to when write mode is enabled.
 #define TWI_ADDRESS             0x20
 
 #define PID_DEADBAND            0x21
@@ -109,10 +109,9 @@
 #define CURRENT_SOFT_CUT_OFF_HI 0x34  // current cut off value
 #define CURRENT_SOFT_CUT_OFF_LO 0x35
 
-// naslovi od 0x2F do 0x80 še niso porabljeni, kar znese 80B
+// addresses from 0x2F to 0x80 are not used (80 bytes in total)
 
-
-//** command addresses
+//** command codes
 #define RESET                   0x80 // Reset microcontroller
 #define CHECKED_TXN             0x81 // Read/Write registers with simple checksum
 
@@ -129,7 +128,6 @@
 #define OS_RESET                0x80 // Reset the servo
 
 // Define the flag register REG_FLAGS_HI and REG_FLAGS_LO bits.
-//
 
 #define FLAGS_HI_RESERVED_07        0x07
 #define FLAGS_HI_RESERVED_06        0x06
