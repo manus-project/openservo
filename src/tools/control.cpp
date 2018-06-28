@@ -8,13 +8,15 @@
 using namespace std;
 using namespace openservo;
 
-#define CMD_OPTIONS "hv"
+#define CMD_OPTIONS "hvl:"
 
 void print_help() {
 
     cout << "Scan for OpenServo devices and print their properties" << endl << endl;
 
-    cout << "\n\nProgram arguments: \n";
+    cout << " openservo_control -h -v -l Property1=Value1 Property2=Value2 ..." << endl << endl;
+
+    cout << "Program configuration: \n";
     cout << "\t-h\tPrint this help and exit\n";
     cout << "\t-v\tVerbose output\n";
     cout << "\t-l\tSet i2c device location\n";
