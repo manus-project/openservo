@@ -65,6 +65,8 @@ public:
 
   bool update(bool full = false);
 
+  void print(ostream& out) const;
+
 protected:
 
   Servo(ServoBus* bus, int address);

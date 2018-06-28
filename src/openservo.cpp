@@ -124,6 +124,16 @@ bool Servo::registersDefault() {
 
 }
 
+void Servo::print(ostream& out) const {
+
+  for(std::map<string, Register>::iterator it = _registers.begin(); it != _registers.end(); ++it) {
+
+    out << it->first << " = " << get(it->first) << endl;
+
+  }
+
+}
+
 int Servo::getType() {
   
   return get("type");
@@ -586,7 +596,7 @@ bool ServoBus::send(unsigned char address, unsigned char data_addr, unsigned cha
   if (data_len > 0)
     memcpy(&tmp_ch[1], data, data_len);
 
-  return i2c_write((i2c_handle)handle, tmp_ch, data_len + 1) != 0;
+  return i2c_write((i2c_handle)handle, tmp_ch, data_len + 1) == 0;
 
 }
 
@@ -602,7 +612,7 @@ bool ServoBus::receive(unsigned char address, unsigned char data_addr, unsigned 
     return false;
 
   // read the data
-  return i2c_read((i2c_handle)handle, data, data_len) != 0;
+  return i2c_read((i2c_handle)handle, data, data_len) == 0;
 
 }
 
