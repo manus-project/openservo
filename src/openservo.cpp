@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <string> 
 
+#include <stdarg.h>
 #include <unistd.h>
 
 namespace openservo {
@@ -389,7 +390,10 @@ bool Servo::update(bool full) {
 
   if (!locked) {
 
-      if (!command(WRITE_ENABLE)) return false;
+      if (!command(WRITE_ENABLE)) {
+        bus->setLastError("Unable to enable write access to address %d", address);
+        return false;
+      } 
 
   }
 
@@ -403,7 +407,10 @@ bool Servo::update(bool full) {
     }
 
     if (start < i) {
-      if (!bus->send(address, start, &data[start], i - start)) return false;
+      if (!bus->send(address, start, &data[start], i - start)) {
+        bus->setLastError("Unable to send registers %d to %d to address %d.", start, i, address);
+        return false;
+      } 
     }
 
     i++;
@@ -412,7 +419,10 @@ bool Servo::update(bool full) {
 
   if (!locked) {
 
-      if (!command(WRITE_DISABLE)) return false;
+      if (!command(WRITE_DISABLE)) {
+        bus->setLastError("Unable to disable write access to address %d", address);
+        return false;
+      } 
       locked = true;
 
   }
@@ -421,13 +431,43 @@ bool Servo::update(bool full) {
   int to = full ? CURRENT_SOFT_CUT_OFF_LO : VOLTAGE_LO;
 
   int data_length = to - from + 1;
-  if (!bus->receive(address, from, &data[from], data_length)) return false;
+  if (!bus->receive(address, from, &data[from], data_length)) {
+    bus->setLastError("Unable to read registers %d to %d from address %d.", from, from + data_length, address);
+    return false;
+  } 
 
   for (i = from; i < to + 1; i++) {
     local[i] = false;
   }
 
   return true;
+}
+
+string ServoBus::getLastError() {
+
+  string m = errormessage;
+  errormessage = "";
+  return m;
+
+}
+
+void ServoBus::setLastError(const string& message, ...) {
+
+  int final_n, n = ((int)message.size()) * 2; /* Reserve two times as much as the length of the message */
+    std::unique_ptr<char[]> formatted;
+    va_list ap;
+    while(1) {
+        formatted.reset(new char[n]); /* Wrap the plain char array into the unique_ptr */
+        strcpy(&formatted[0], message.c_str());
+        va_start(ap, message);
+        final_n = vsnprintf(&formatted[0], n, message.c_str(), ap);
+        va_end(ap);
+        if (final_n < 0 || final_n >= n)
+            n += abs(final_n - n + 1);
+        else
+            break;
+    }
+    errormessage = std::string(formatted.get());
 }
 
 ServoBus::ServoBus() {
@@ -452,13 +492,17 @@ bool ServoBus::open(const string& port) {
 
 #ifdef _BUILD_MPSSE
   if (port.empty()) {
-    if ((handle = i2c_open(NULL, I2C_MPSSE)) == NULL)
+    if ((handle = i2c_open(NULL, I2C_MPSSE)) == NULL) {
+      setLastError("Cannot open MPSSE device");
       return false;
+    }
   } else {
 #endif
 
-    if ((handle = i2c_open(port.c_str(), I2C_DIRECT)) == NULL)
+    if ((handle = i2c_open(port.c_str(), I2C_DIRECT)) == NULL) {
+      setLastError("Cannot open i2c port %s", port.c_str());
       return false;
+    }
 
 #ifdef _BUILD_MPSSE
   }
@@ -487,15 +531,14 @@ int ServoBus::scan(bool force) {
 
 bool ServoBus::update(bool full) {
 
-  bool result = true;
-
   for (vector<ServoHandler>::iterator it = servos.begin(); it != servos.end(); it++) {
 
-    result &= (*it)->update(full);
+    if (!(*it)->update(full));
+      return false;
 
   }
 
-  return result;
+  return true;
 }
 
 ServoHandler ServoBus::get(int i) {

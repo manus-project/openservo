@@ -114,16 +114,24 @@ public:
   bool exists(int address); 
   int size();
 
+
+  string getLastError();
+
+
 protected:
 
   bool send(unsigned char address, unsigned char data_address, unsigned char* data, int data_lenght); 
   bool receive(unsigned char address, unsigned char data_address, unsigned char* data, int data_lenght);
+
+  void setLastError(const string& message, ...);
 
 private:
 
   void* handle;
   vector<ServoHandler> servos;
  
+  string errormessage;
+
   int cleanupServos();
   int addServos();
 
