@@ -533,7 +533,7 @@ bool ServoBus::update(bool full) {
 
   for (vector<ServoHandler>::iterator it = servos.begin(); it != servos.end(); it++) {
 
-    if (!(*it)->update(full));
+    if (!(*it)->update(full))
       return false;
 
   }
